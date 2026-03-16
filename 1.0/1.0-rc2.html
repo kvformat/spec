@@ -2093,21 +2093,22 @@ and produce equivalent results.
 </p>
 
 <pre class="pseudocode">
-A. initialize pos = 0, error_count = 0
+A. initialize pos = 0, error_count = 0, line_num = 0
 B. File-level artifacts
    1. if file starts with UTF-8 BOM (EF BB BF):
-      - echo "BOM_ERROR at start of file" &gt; stderr
+      - echo "BOM_ERROR at start of file" > stderr
       - error_count += 1
       - pos += 3  # skip BOM
    2. if file[pos..] starts with "#!":
       - shebang_line, eol = extract first line starting at pos
+      - line_num += 1
       - if shebang_line contains invalid UTF-8:
-        * echo "INVALID_UTF8_ERROR in line 0 (shebang)" &gt; stderr
+        * echo "INVALID_UTF8_ERROR in line 1 (shebang)" > stderr
         * error_count += 1
       - pos += length(shebang_line) + length(eol)  # skip shebang line
 C. Extract Kv text
    - text = file[pos..]
-   - initialize i = 0 (byte-level index), line_num = 0
+   - initialize i = 0 (byte-level index)
 D. while i &lt; length(text):
    1. (string eol, index i_eol) = find next LF or CRLF starting from i
    2. if not found:
