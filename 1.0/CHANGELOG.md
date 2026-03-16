@@ -1,6 +1,16 @@
 Kv Format 1.0 Specification CHANGELOG
 =====================================
 
+
+[1.0 RC3] - 2026-03-16
+----------------------
+
+### Changed
+
+- Section 6.2 (MIME Types) completely rewritten, allowing both
+  application/ and text/ MIME types
+
+
 [1.0 RC2] - 2026-03-16
 ----------------------
 
