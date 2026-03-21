@@ -1,6 +1,14 @@
 Kv Format 1.0 Specification CHANGELOG
 =====================================
 
+[1.0 RC4] - 2026-03-21
+----------------------
+
+### Changed
+
+- Added footnote in Section 2.2 about valid keys
+  (valid POSIX variable names with no reservations).
+
 
 [1.0 RC3] - 2026-03-16
 ----------------------
