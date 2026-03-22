@@ -144,7 +144,8 @@
                 <li><a href="#sec-schema-required-keys">11.3 Required Keys</a></li>
                 <li><a href="#sec-schema-relaxed">11.4 Relaxed Schemas</a></li>
                 <li><a href="#sec-schema-strict">11.5 Strict Schemas</a></li>
-                <li><a href="#sec-schema-format-declaration-syntax">11.6 General Format Declaration Syntax</a></li>
+                <li><a href="#sec-schemas-key-uniqueness">11.6 Key Uniqueness</a></li>
+                <li><a href="#sec-schema-format-declaration-syntax">11.7 General Format Declaration Syntax</a></li>
             </ul>
         </li>
         <li><a href="#sec-metadata-entries">Metadata Entries</a></li>
@@ -154,7 +155,8 @@
                 <li><a href="#sec-type-annotations-semantics">13.2 Semantics</a></li>
                 <li><a href="#sec-type-annotations-standard">13.3 Standard Type Annotations</a></li>
                 <li><a href="#sec-type-annotations-custom">13.4 Custom Type Annotations</a></li>
-                <li><a href="#sec-type-annotations-parsing">13.5 Parsing Requirements</a></li>
+                <li><a href="#sec-type-annotations-schemas">13.5 Type Annotations and Schemas</a></li>
+                <li><a href="#sec-type-annotations-parsing">13.6 Parsing Requirements</a></li>
             </ul>
         </li>
         <li><a href="#sec-b64">Encoding Directive</a>
@@ -162,7 +164,8 @@
                 <li><a href="#sec-b64-syntax">14.1 Syntax</a></li>
                 <li><a href="#sec-b64-variant">14.2 Base64url Variant</a></li>
                 <li><a href="#sec-b64-examples">14.3 Examples</a></li>
-                <li><a href="#sec-b64-parsing">14.4 Parsing Requirements</a></li>
+                <li><a href="#sec-b64-schemas">14.4 Encoding Directives and Schemas</a></li>
+                <li><a href="#sec-b64-parsing">14.5 Parsing Requirements</a></li>
             </ul>
         </li>
         <li><a href="#sec-kv-comment-syntax">Kv Comment Syntax</a></li>
@@ -2005,35 +2008,37 @@ in those versions' specifications.
 <section id="sec-format-declaration">
 <h2>9 Format Declaration</h2>
 
+<p>
 The <strong>format declaration</strong>
 is an optional first line in a Kv text
 indicating:
+</p>
 <ul>
 <li>
     the type of Kv text: data (<code>!kv</code>)
     or schema (<code>!kvschema</code>)
-    \textemdash{}
-    Section~\ref{sec:schemas}
+    —
+    <a href="#sec-schemas">Section 11</a>
 </li>
 <li>
-    the version (Section~\ref{sec:format:version})
-    and variant (Section~\ref{sec:kv-variants})
+    the version (<a href="#sec-version-declaration-syntax">Section 9.1</a>)
+    and variant (<a href="#sec-kv-variants">Section 10</a>)
 </li>
 <li>
-    the schema URL (Section~\ref{sec:schemas:declaration})
+    the schema URL (<a href="#sec-schema-declaration">Section 11.1</a>)
 </li>
 <li>
-    whether the schema is strict (\kv{:strict}, Section~\ref{sec:schemas:strict}
-    or relaxed (default, Section~\ref{sec:schemas:relaxed}).
+    whether the schema is strict (<code>:strict</code>, <a href="#sec-schema-strict">Section 11.5</a>)
+    or relaxed (default, <a href="#sec-schema-relaxed">Section 11.4</a>).
 </li>
-\end{itemize}
-
-\noindent
+</ul>
+<p>
 These features are presented progressively
 throughout the next few sections,
 while the full syntax for the format declaration
 is deferred
-until Section~\ref{sec:format-declaration-syntax}.
+until <a href="#sec-schema-format-declaration-syntax">Section 11.7</a>.
+</p>
 
 
 <section id="sec-version-declaration-syntax">
@@ -2261,7 +2266,8 @@ y=2
 <section id="sec-schema-strict">
 <h3>11.5 Strict Schemas</h3>
 <p>
-A schema can be defined as strict with the <code>:strict</code> modifier:
+A schema can be defined as <strong>strict</strong>
+with the <code>:strict</code> modifier:
 </p>
 <pre class="kv">
 !kvschema:strict 1.1 https://example.org/schema.kv
@@ -2408,15 +2414,65 @@ for <strong>custom type annotations</strong>, for example:
 !x/customerID
 </pre>
 <p>
-Custom type annotations are free-form entries,
-the only exception being
-that <code>!x/b64</code> is reserved for custom encoding directives
-(<a href="#sec-b64">Section 14</a>).
+Custom type annotations are free-form entries.
 </p>
 </section>
 
+<section id="sec-type-annotations-schemas">
+<h3>13.5 Type Annotations and Schemas</h3>
+<p>
+Type annotations in a schema define the expected type
+of the corresponding key in conforming data texts.
+For example:
+</p>
+<pre class="kv">
+!kvschema 1.1 https://schema.example.org/server.kv
+HOST=!
+!int
+PORT=
+!bool
+DEBUG=
+</pre>
+<p>
+Here, <code>PORT</code> is declared as an integer
+and <code>DEBUG</code> as a boolean.
+A conforming data text need not repeat these annotations:
+</p>
+<pre class="kv">
+!kv 1.1 https://schema.example.org/server.kv
+HOST=localhost
+PORT=5432
+DEBUG=true
+</pre>
+<p>
+Applications validating against the schema
+MAY apply schema-defined type annotations
+to data text entries
+that do not carry their own type annotations.
+If a data text entry carries an explicit type annotation,
+it MUST take precedence over the schema-defined annotation.
+</p>
+<p><strong>Explicit type annotations in data texts:</strong>
+A data text MAY include explicit type annotations
+for keys defined in the schema.</p>
+<ul>
+<li>
+    In a strict schema,
+    an explicit type annotation in the data text
+    MUST match the schema-defined annotation;
+    a mismatch means the data text
+    is non-conforming.
+</li>
+<li>
+    In a relaxed schema,
+    an explicit type annotation in the data text
+    takes precedence over the schema-defined annotation.
+</li>
+</ul>
+</section>
+
 <section id="sec-type-annotations-parsing">
-<h3>13.5 Parsing Requirements</h3>
+<h3>13.6 Parsing Requirements</h3>
 <p>
 Parsers MAY ignore type annotation lines,
 or MAY produce corresponding <strong>metadata entries</strong>.
@@ -2468,10 +2524,11 @@ Any custom types should use either:
 <ul>
 <li>the generic string type: <code>!b64</code>;</li>
 <li>the generic binary type: <code>!b64 bin</code>;</li>
-<li>or use the private <code>!x/b64</code> directive for arbitrary types,
+<li>or use the <code>!b64</code> directive
+    with private types,
     for example:
 <pre class="kv">
-!x/b64 ProductDetails
+!b64 x/ProductDetails
 </pre>
 </li>
 </ul>
@@ -2481,7 +2538,7 @@ Any custom types should use either:
 <h3>14.2 Base64url Variant</h3>
 <p>
 The <code>!b64</code> directive specifically refers to the <em>base64url</em>
-variant ([<a href="#ref-rfc4648">rfc4648</a>] §5), which uses the URL-safe alphabet
+variant (RFC 4648 §5), which uses the URL-safe alphabet
 (<code>A-Z a-z 0-9 -_</code>) and omits padding characters (<code>=</code>)
 unless required for decoder compatibility.
 </p>
@@ -2504,11 +2561,25 @@ CERTIFICATE=MIICljCCAX4CAQAwDQYJKoZIhvcNAQEFBQA...
 </pre>
 </section>
 
+<section id="sec-b64-schemas">
+<h3>14.4 Encoding Directives and Schemas</h3>
+<p>
+Encoding directives (<code>!b64</code>)
+MUST NOT appear in schemas.
+Encoding is a property of a particular value instance,
+not of the key's structural definition:
+the same key may or may not require encoding
+depending on the value.
+Encoding directives MUST be explicit
+in data texts.
+</p>
+</section>
+
 <section id="sec-b64-parsing">
-<h3>14.4 Parsing Requirements</h3>
+<h3>14.5 Parsing Requirements</h3>
 <p>
 Parsers MUST produce a metadata entry
-for each <code>!b64</code> or <code>!x/b64</code> line
+for each <code>!b64</code> line
 (<a href="#sec-metadata-entries">Section 12</a>).
 The base64url encoding validation, decoding and interpretation
 of the encoded content is the application&#39;s responsibility.
@@ -2781,7 +2852,7 @@ with the following divergences:
 
 <p>
 <strong>Line types:</strong>
-The encoding directive \kv{!b64} is not allowed in schemas.
+The encoding directive <code>!b64</code> is not allowed in schemas.
 </p>
 
 <p>
